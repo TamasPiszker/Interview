@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 public class UrlShortener
 {
     private readonly IUrlMapDb _urlMapDb;
     private readonly Random _random = new Random();
+    private readonly string _baseUrl = "http://short.url/";
     private const int MaxRetries = 5;
 
     public UrlShortener(IUrlMapDb urlMapDb)
@@ -13,9 +15,9 @@ public class UrlShortener
 
     public string ShortenUrl(string longUrl)
     {
-        if (string.IsNullOrWhiteSpace(longUrl))
+        if (string.IsNullOrWhiteSpace(longUrl) || !IsValidUrl(longUrl))
         {
-            throw new ArgumentException("URL cannot be empty or null");
+            throw new ArgumentException("Invalid URL");
         }
 
         string shortUrl;
@@ -39,9 +41,9 @@ public class UrlShortener
 
     public string RetrieveUrl(string shortUrl)
     {
-        if (string.IsNullOrWhiteSpace(shortUrl))
+        if (string.IsNullOrWhiteSpace(shortUrl) || !shortUrl.StartsWith(_baseUrl))
         {
-            throw new ArgumentException("Short URL cannot be empty or null");
+            throw new ArgumentException("Invalid short URL");
         }
 
         var longUrl = _urlMapDb.GetLongUrl(shortUrl);
@@ -54,6 +56,12 @@ public class UrlShortener
         return longUrl;
     }
 
+    private bool IsValidUrl(string url)
+    {
+        var regex = new Regex(@"^(http|https)://");
+        return regex.IsMatch(url);
+    }
+
     private string GenerateShortUrl()
     {
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -64,6 +72,6 @@ public class UrlShortener
             shortUrl[i] = chars[_random.Next(chars.Length)];
         }
 
-        return new string(shortUrl);
+        return _baseUrl + new string(shortUrl);
     }
 }

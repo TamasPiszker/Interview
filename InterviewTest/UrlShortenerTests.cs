@@ -16,7 +16,7 @@ public class UrlShortenerTests
     public void ShortenUrl_ValidUrl_ReturnsShortUrl()
     {
         // Arrange
-        var longUrl = "https://www.example.com";
+        var longUrl = "https://www.example.com/asdfghjjkljk";
         _mockUrlMapDb.Setup(db => db.GetLongUrl(It.IsAny<string>())).Returns((string)null); // No collision
 
         // Act
@@ -31,8 +31,8 @@ public class UrlShortenerTests
     public void RetrieveUrl_ValidShortUrl_ReturnsLongUrl()
     {
         // Arrange
-        var shortUrl = "abc123";
-        var longUrl = "https://www.example.com";
+        var shortUrl = "http://short.url/abc123";
+        var longUrl = "https://www.example.com/asdfghjjkljk";
         _mockUrlMapDb.Setup(db => db.GetLongUrl(shortUrl)).Returns(longUrl);
 
         // Act
@@ -46,7 +46,7 @@ public class UrlShortenerTests
     public void RetrieveUrl_InvalidShortUrl_ThrowsException()
     {
         // Arrange
-        var shortUrl = "invalid";
+        var shortUrl = "http://short.url/invalid";
         _mockUrlMapDb.Setup(db => db.GetLongUrl(shortUrl)).Returns((string)null);
 
         // Act & Assert
@@ -58,8 +58,8 @@ public class UrlShortenerTests
     public void ShortenUrl_UrlAlreadyExistsInDb_GeneratesNewShortUrl()
     {
         // Arrange
-        var longUrl = "https://www.example.com";
-        var existingShortUrl = "abc123";
+        var longUrl = "https://www.example.com/asdfghjjkljk";
+        var existingShortUrl = "http://short.url/abc123";
 
         // First short URL already exists
         _mockUrlMapDb.SetupSequence(db => db.GetLongUrl(It.IsAny<string>()))
@@ -79,7 +79,7 @@ public class UrlShortenerTests
     public void ShortenUrl_MaxRetriesExceeded_ThrowsException()
     {
         // Arrange
-        var longUrl = "https://www.example.com";
+        var longUrl = "https://www.example.com/asdfghjjkljk";
 
         // Simulate collision for all attempts
         _mockUrlMapDb.Setup(db => db.GetLongUrl(It.IsAny<string>())).Returns(longUrl);
@@ -97,7 +97,7 @@ public class UrlShortenerTests
     {
         // Act & Assert
         var ex = Assert.Throws<ArgumentException>(() => _urlShortener.ShortenUrl(invalidUrl));
-        Assert.Equal("URL cannot be empty or null", ex.Message);
+        Assert.Equal("Invalid URL", ex.Message);
     }
 
     [Theory]
@@ -108,6 +108,6 @@ public class UrlShortenerTests
     {
         // Act & Assert
         var ex = Assert.Throws<ArgumentException>(() => _urlShortener.RetrieveUrl(invalidShortUrl));
-        Assert.Equal("Short URL cannot be empty or null", ex.Message);
+        Assert.Equal("Invalid short URL", ex.Message);
     }
 }
